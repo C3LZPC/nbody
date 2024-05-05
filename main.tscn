@@ -1,0 +1,28 @@
+[gd_scene load_steps=7 format=3 uid="uid://d1taj5spydusq"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_tj04x"]
+[ext_resource type="Material" uid="uid://ce2cptq2ps73b" path="res://point_size.material" id="2_8og05"]
+[ext_resource type="PackedScene" uid="uid://j062bqsxhjht" path="res://gui.tscn" id="2_gehgg"]
+[ext_resource type="PackedScene" uid="uid://cr3i7igmft4t7" path="res://camera_3d.tscn" id="3_5exhy"]
+
+[sub_resource type="Environment" id="Environment_oq8py"]
+background_mode = 1
+reflected_light_source = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_lt0ji"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_tj04x")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_oq8py")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = ExtResource("2_8og05")
+cast_shadow = 0
+ignore_occlusion_culling = true
+mesh = SubResource("BoxMesh_lt0ji")
+
+[node name="Camera3D" parent="." instance=ExtResource("3_5exhy")]
+
+[node name="GUI" parent="." instance=ExtResource("2_gehgg")]
