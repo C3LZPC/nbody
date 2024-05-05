@@ -13,8 +13,8 @@ script = ExtResource("1_dqank")
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -136.0
-offset_bottom = 78.0
+offset_left = -223.0
+offset_bottom = 215.0
 grow_horizontal = 0
 
 [node name="Sim_Settings" type="VBoxContainer" parent="Sim_Settings"]
@@ -43,6 +43,16 @@ layout_mode = 2
 [node name="HSeparator2" type="HSeparator" parent="Sim_Settings/Sim_Settings"]
 layout_mode = 2
 
+[node name="Initial_Acceleration_Label" type="Label" parent="Sim_Settings/Sim_Settings"]
+layout_mode = 2
+text = "Initial acceleration:"
+
+[node name="Initial_Acceleration" type="OptionButton" parent="Sim_Settings/Sim_Settings"]
+layout_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="Sim_Settings/Sim_Settings"]
+layout_mode = 2
+
 [node name="Particle_Count_Label" type="Label" parent="Sim_Settings/Sim_Settings"]
 layout_mode = 2
 text = "Particles:"
@@ -55,7 +65,7 @@ value = 1.0
 tick_count = 3
 ticks_on_borders = true
 
-[node name="HSeparator3" type="HSeparator" parent="Sim_Settings/Sim_Settings"]
+[node name="HSeparator4" type="HSeparator" parent="Sim_Settings/Sim_Settings"]
 layout_mode = 2
 
 [node name="Reset" type="Button" parent="Sim_Settings/Sim_Settings"]
