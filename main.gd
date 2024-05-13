@@ -26,7 +26,7 @@ func reset_sim():
 	var distribution_option = $GUI/Sim_Settings/Sim_Settings/Distribution.get_selected_id()
 	var accel_option = $GUI/Sim_Settings/Sim_Settings/Initial_Acceleration.get_selected_id()
 	
-	var sim_radius = 10
+	var sim_radius = 5.0
 	var starting_mass = 1000.0
 	
 	points = []
@@ -70,12 +70,12 @@ func reset_sim():
 				p[1] = r * sin(phi) * sin(theta)
 				p[2] = r * cos(phi)
 			if 1 < c and c <= 2:
-				p[0] = r * sin(phi) * cos(theta) - sim_radius / 2
-				p[1] = r * sin(phi) * sin(theta) + sim_radius / 2
+				p[0] = r * sin(phi) * cos(theta) - sim_radius / 2.0
+				p[1] = r * sin(phi) * sin(theta) + sim_radius / 2.0
 				p[2] = r * cos(phi)
 			if 2 < c:
-				p[0] = r * sin(phi) * cos(theta) - sim_radius / 2
-				p[1] = r * sin(phi) * sin(theta) - sim_radius / 2
+				p[0] = r * sin(phi) * cos(theta) - sim_radius / 2.0
+				p[1] = r * sin(phi) * sin(theta) - sim_radius / 2.0
 				p[2] = r * cos(phi)
 		
 		var m = starting_mass
@@ -105,11 +105,6 @@ func redraw_mesh():
 		p.resize(points.size())
 		for i in points.size():
 			p[i] = Vector3(points[i][0], points[i][1], points[i][2])
-			"""
-			if i == 0:
-				print(p[i])
-				print(points[i][0], ", ", points[i][1], ", ", points[i][2])
-			"""
 		
 		arrays[Mesh.ARRAY_VERTEX] = p
 		
@@ -120,7 +115,44 @@ func redraw_mesh():
 
 
 
-func _process(delta):
+
+func assimilate(index_dict):
+	for key in index_dict.keys():
+		for val in index_dict[key]:
+			
+			var Fx = accelerations[key][0] * masses[key] + accelerations[val][0] * masses[val]
+			var Fy = accelerations[key][1] * masses[key] + accelerations[val][1] * masses[val]
+			var Fz = accelerations[key][2] * masses[key] + accelerations[val][2] * masses[val]
+			
+			var m = masses[key] + masses[val]
+			
+			accelerations[key][0] = Fx / m
+			accelerations[key][1] = Fy / m
+			accelerations[key][2] = Fz / m
+			
+			masses[key] = m
+	
+	for key in index_dict.keys():
+		for val in index_dict[key]:
+			points.remove_at(val)
+			masses.remove_at(val)
+			accelerations.remove_at(val)
+			print("Removed: ", val)
+
+func integrate(delta, index, dFx, dFy, dFz):
+	accelerations[index][0] += dFx / masses[index]
+	accelerations[index][1] += dFy / masses[index]
+	accelerations[index][2] += dFz / masses[index]
+	
+	var vx = accelerations[index][0] * delta
+	var vy = accelerations[index][1] * delta
+	var vz = accelerations[index][2] * delta
+	
+	points[index][0] = points[index][0] + vx
+	points[index][1] = points[index][1] + vy
+	points[index][2] = points[index][2] + vz
+
+func sim_naive(delta):
 	# F = G * m1 * m2 / r**2
 	# A += sum(F) / m
 	# V = A * dt
@@ -132,12 +164,9 @@ func _process(delta):
 		var dFx = 0.0
 		var dFy = 0.0
 		var dFz = 0.0
-		var dm = 0.0
 		
 		for y in particle_num:
 			if x != y:
-				#var r2 : float = Vector3(points[x]).distance_squared_to(points[y])
-				
 				var dir_Fx : float = points[y][0] - points[x][0]
 				var dir_Fy : float = points[y][1] - points[x][1]
 				var dir_Fz : float = points[y][2] - points[x][2]
@@ -152,18 +181,6 @@ func _process(delta):
 				dFy += dir_F2y * F
 				dFz += dir_F2z * F
 				
-				"""
-				if x == 0:
-					print("-----")
-					print(F, " = ", G, " * ", m2, " / ", r2)
-					print(dir_Fx, ", ", dir_Fy, ", ", dir_Fz)
-					print(r)
-					print(dir_F2x, ", ", dir_F2y, ", ", dir_F2z)
-					print(dir_F2x * F, ", ", dir_F2y * F, ", ", dir_F2z * F)
-					print(":")
-					print(dFx, ", ", dFy, ", ", dFz)
-				"""
-				
 				if r < collision_treshhold:
 					if not (y in points_to_del.keys() and x in points_to_del[y]):
 						if x in points_to_del.keys():
@@ -171,52 +188,31 @@ func _process(delta):
 						else:
 							points_to_del[x] = [y]
 		
-		accelerations[x][0] += dFx / masses[x]
-		accelerations[x][1] += dFy / masses[x]
-		accelerations[x][2] += dFz / masses[x]
-		
-		var vx = accelerations[x][0] * delta
-		var vy = accelerations[x][1] * delta
-		var vz = accelerations[x][2] * delta
-		
-		
-		points[x][0] = points[x][0] + vx
-		points[x][1] = points[x][1] + vy
-		points[x][2] = points[x][2] + vz
-		
-		"""
-		if x == 0:
-			print("-----")
-			print(accelerations[x][0], ", ", accelerations[x][1], ", ", accelerations[x][2])
-			print(vx, ", ", vy, ", ", vz)
-			#print(points[x].x + vx, ", ", points[x].y + vy, ", ", points[x].z + vz)
-			#print(points[x].x, ", ", points[x].y, ", ", points[x].z)
-			
-			#print(points[x][0] + vx, ", ", points[x][1] + vy, ", ", points[x][2] + vz)
-			print(points[x][0], ", ", points[x][1], ", ", points[x][2])
-		"""
+		integrate(delta, x, dFx, dFy, dFz)
 	
-	for key in points_to_del.keys():
-		for val in points_to_del[key]:
-			
-			var Fx = accelerations[key][0] * masses[key] + accelerations[val][0] * masses[val]
-			var Fy = accelerations[key][1] * masses[key] + accelerations[val][1] * masses[val]
-			var Fz = accelerations[key][2] * masses[key] + accelerations[val][2] * masses[val]
-			
-			var m = masses[key] + masses[val]
-			
-			accelerations[key][0] = Fx / m
-			accelerations[key][1] = Fy / m
-			accelerations[key][2] = Fz / m
-			
-			masses[key] = m
+	assimilate(points_to_del)
+
+func sim_barnes_hut(delta):
+	# https://patterns.eecs.berkeley.edu/?page_id=193
 	
-	for key in points_to_del.keys():
-		for val in points_to_del[key]:
-			points.remove_at(val)
-			masses.remove_at(val)
-			accelerations.remove_at(val)
-			print("Removed: ", val)
+	var points_to_del = {}
+	var forces = []
+	var octree = OCTree.new(null, G)
+	forces.resize(points.size())
+	for index in len(points):
+		octree.insert(index, points[index][0], points[index][1], points[index][2], masses[index])
+	octree.compute_mass(points, masses)
+	octree.get_forces(points, forces, collision_treshhold, points_to_del)
+	#print(forces)
+	for index in len(points):
+		integrate(delta, index, forces[index][0], forces[index][1], forces[index][2])
+	assimilate(points_to_del)
+
+#func _physics_process(delta):
+func _process(delta):
+	
+	#sim_naive(delta)
+	sim_barnes_hut(delta)
 	
 	redraw_mesh()
 

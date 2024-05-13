@@ -9,7 +9,7 @@ func _ready():
 	self.near = 0.1
 	self.far = 100000
 
-func _process(delta):
+func _process(_delta):
 	rotation_degrees.x = v.x
 	rotation_degrees.y = v.y
 	

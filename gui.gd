@@ -20,7 +20,7 @@ func _ready():
 	for i in accelerations:
 		$Sim_Settings/Sim_Settings/Initial_Acceleration.add_item(i)
 
-func _process(delta):
+func _process(_delta):
 	var fps = Engine.get_frames_per_second()
 	$Stats/Box/FPS/FPS.text = str(fps)
 	$Stats/Box/Frame_Time/Time.text = str(1/fps) + " s"
